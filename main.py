@@ -3,7 +3,7 @@ import serial
 import time
 import matplotlib.pyplot as plt
 from scipy.fftpack import fft, fftfreq
-from scipy.interpolate import make_interp_spline
+from funtions import*
 
 COM = 'COM7'
 arduinoSerial = serial.Serial(COM, 9600)
@@ -26,59 +26,24 @@ mass = 12E-3
 
 #Filtro del ruido ---------------------------------------------------
 values = 400
-noise = 0
-
-for i in range(values):
-    try:
-        sensorValue = (float(arduinoSerial.readline().decode('utf-8')))
-    except:
-        sensorValue = 0
-    noise = noise + sensorValue
-
-noiseMean = noise/values
+noiseMean = noise_filter(values)
 
 #Lectura de los datos ------------------------------------------------
-print('Comienza')
-for i in range(len(voltage)):
-    try:
-        voltage[i] = (float(arduinoSerial.readline().decode('utf-8'))) - noiseMean
-        tFix[i] = time.time()
-        tSpan[i] = time.time() - tFix[0]
-    except:
-        print('Entra')
-        voltage[i] = voltage[i-1]
-        tFix[i] = time.time()
-        tSpan[i] = time.time() - tFix[0]
-print('Termina')
-totalTime = tFix[n-1]-tFix[0]
-print('Tiempo: ', totalTime)
+voltage, tFix, tSpan, totalTime, timeValues, dt = data_reading(voltage, noiseMean, tFix, tSpan, n)
 
 #Cinematica del movimiento ------------------------------------------
-timeValues = np.linspace(0.0, totalTime, n)  # Intervalo de tiempo en segundos
-dt = totalTime/n  # Espaciado, 16 puntos por período
-velocity = (voltage)/(magneticField*spirals*length*1000)
-offsetVelocity = velocity - (sum(velocity)/len(velocity))
 
-position[0] = offsetVelocity[0]
-for i in range(len(offsetVelocity)-1):
-    position[i+1] = position[i] + offsetVelocity[i+1]
+velocity, offsetVelocity = kinematics.velocity_calculation(voltage, magneticField, spirals, length)
 
-acceleration[0] = 0
-for i in range(len(velocity)-1):
-     acceleration[i+1] = (velocity[i+1] - velocity[i]) / (timeValues[i+1] - timeValues[i])
+position = kinematics.position_calculation(position, offsetVelocity)
+
+acceleration = kinematics.acceleration_calculation(acceleration, velocity, timeValues)
 
 ##Transformada de Fourier DFT --------------------------------------
 
-y = velocity
+frq, Y = fourier_transform(velocity, n, dt)
 
-Y = fft(y) / n  # Normalizada
-frq = fftfreq(n, dt)  # Recuperamos las frecuencias
-
-fHz = frq[np.where(abs(Y.imag) == max(abs(Y.imag)))][0]
-
-print('La frecuencia de mayor amplitud es: ', fHz)
-
-#Dinamica del movimiento
+#Dinamica del movimiento -----------------------------------------------------
 
 
 
