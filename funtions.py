@@ -4,10 +4,7 @@ import time
 import matplotlib.pyplot as plt
 from scipy.fftpack import fft, fftfreq
 
-COM = 'COM7'
-arduinoSerial = serial.Serial(COM, 9600)
-
-def noise_filter(values): #Filtro del ruido ---------------------------------------------------
+def noise_filter(values, arduinoSerial): #Filtro del ruido ---------------------------------------------------
     noise = 0
     for i in range(values):
         try:
@@ -19,7 +16,7 @@ def noise_filter(values): #Filtro del ruido ------------------------------------
 
     return noiseMean
 
-def data_reading(voltage, noiseMean, tFix, tSpan, n): #Lectura de los datos ------------------------------------------------
+def data_reading(voltage, arduinoSerial, noiseMean, tFix, tSpan, n): #Lectura de los datos ------------------------------------------------
     print('Comienza')
     for i in range(len(voltage)):
         try:

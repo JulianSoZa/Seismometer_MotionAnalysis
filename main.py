@@ -26,10 +26,10 @@ mass = 12E-3
 
 #Filtro del ruido ---------------------------------------------------
 values = 400
-noiseMean = noise_filter(values)
+noiseMean = noise_filter(values, arduinoSerial)
 
 #Lectura de los datos ------------------------------------------------
-voltage, tFix, tSpan, totalTime, timeValues, dt = data_reading(voltage, noiseMean, tFix, tSpan, n)
+voltage, tFix, tSpan, totalTime, timeValues, dt = data_reading(voltage, arduinoSerial, noiseMean, tFix, tSpan, n)
 
 #Cinematica del movimiento ------------------------------------------
 
