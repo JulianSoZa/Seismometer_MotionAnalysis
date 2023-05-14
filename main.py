@@ -1,8 +1,6 @@
 import numpy as np
 import serial
-import time
 import matplotlib.pyplot as plt
-from scipy.fftpack import fft, fftfreq
 from funtions import*
 
 COM = 'COM7'

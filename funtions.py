@@ -1,7 +1,5 @@
 import numpy as np
-import serial
 import time
-import matplotlib.pyplot as plt
 from scipy.fftpack import fft, fftfreq
 
 def noise_filter(values, arduinoSerial): #Filtro del ruido ---------------------------------------------------
@@ -55,8 +53,7 @@ class kinematics: #Cinematica del movimiento -----------------------------------
         return acceleration
     
 def fourier_transform(velocity, n, dt):
-    y = velocity
-    Y = fft(y) / n  # Normalizada
+    Y = fft(velocity) / n  # Normalizada
     frq = fftfreq(n, dt)  # Recuperamos las frecuencias
     fHz = frq[np.where(abs(Y.imag) == max(abs(Y.imag)))][0]
     print('La frecuencia de mayor amplitud es: ', fHz)
