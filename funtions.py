@@ -1,6 +1,6 @@
 import numpy as np
 import time
-from scipy.fftpack import fft, fftfreq
+from scipy.fftpack import fft, ifft, fftfreq
 
 def noise_filter(values, arduinoSerial): #Filtro del ruido ---------------------------------------------------
     noise = 0
@@ -53,8 +53,19 @@ class kinematics: #Cinematica del movimiento -----------------------------------
         return acceleration
     
 def fourier_transform(velocity, n, dt):
-    Y = fft(velocity) / n  # Normalizada
+    yfft = fft(velocity) / n  # Normalizada
     frq = fftfreq(n, dt)  # Recuperamos las frecuencias
-    fHz = frq[np.where(abs(Y.imag) == max(abs(Y.imag)))][0]
+    fHz = frq[np.where(abs(yfft.imag) == max(abs(yfft.imag)))][0]
     print('La frecuencia de mayor amplitud es: ', fHz)
-    return frq, Y
+    print(frq, yfft)
+    return frq, yfft
+
+def signal_decomposition(harmonics, velocity, n, yfft):
+    maximums = np.flip(np.sort(abs(yfft.imag)))
+    ysfft = []
+    signals = []
+    for i in range(harmonics):
+        ysfft.append(fft(velocity)/n)
+        ysfft[i][np.where(abs(ysfft[i].imag) != maximums[i*2])] = 0
+        signals.append(ifft(ysfft[i])*n)
+    return ysfft, signals

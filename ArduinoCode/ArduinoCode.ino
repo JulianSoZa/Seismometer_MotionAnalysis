@@ -3,7 +3,7 @@ int sensorValue;
 float voltageValue;
 
 void setup() {
-  Serial.begin(9600);// initialize serial communications at 9600 bps
+  Serial.begin(38400);// initialize serial communications at 9600 bps
 }
 
 void loop() {
