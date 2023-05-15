@@ -82,7 +82,7 @@ ax3.grid()
 
 fig3,(ax4) = plt.subplots(1,1)
 for i in range(harmonics):
-    ax4.plot(timeValues, signals[i])
+    ax4.plot(timeValues, signals[i].real)
 ax4.set_xlim(0, 3)
 ax4.set_xlabel('Tiempo (s)')
 ax4.set_ylabel('velocidad')
