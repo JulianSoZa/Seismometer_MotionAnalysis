@@ -29,8 +29,8 @@ def data_reading(voltage, arduinoSerial, noiseMean, tFix, tSpan, n): #Lectura de
     print('Termina')
     totalTime = tFix[n-1]-tFix[0]
     print('Tiempo: ', totalTime)
-    timeValues = np.linspace(0.0, totalTime, n)  # Intervalo de tiempo en segundos
-    dt = totalTime/n  # Espaciado, 16 puntos por período
+    timeValues = np.linspace(0.0, totalTime, n)
+    dt = totalTime/n
 
     return voltage, tFix, tSpan, totalTime, timeValues, dt
 
@@ -54,8 +54,8 @@ class kinematics: #Cinematica del movimiento -----------------------------------
 
 class fourierAnalysis:
     def fourier_transform(velocity, n, dt):
-        yfft = fft(velocity) / n  # Normalizada
-        frq = fftfreq(n, dt)  # Recuperamos las frecuencias
+        yfft = fft(velocity)/n
+        frq = fftfreq(n, dt)
         fHz = frq[np.where(abs(yfft.imag) == max(abs(yfft.imag)))][0]
         print('La frecuencia de mayor amplitud es: ', fHz)
         return frq, yfft
