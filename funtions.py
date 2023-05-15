@@ -51,21 +51,21 @@ class kinematics: #Cinematica del movimiento -----------------------------------
         for i in range(len(velocity)-1):
             acceleration[i+1] = (velocity[i+1] - velocity[i]) / (timeValues[i+1] - timeValues[i])
         return acceleration
-    
-def fourier_transform(velocity, n, dt):
-    yfft = fft(velocity) / n  # Normalizada
-    frq = fftfreq(n, dt)  # Recuperamos las frecuencias
-    fHz = frq[np.where(abs(yfft.imag) == max(abs(yfft.imag)))][0]
-    print('La frecuencia de mayor amplitud es: ', fHz)
-    print(frq, yfft)
-    return frq, yfft
 
-def signal_decomposition(harmonics, velocity, n, yfft):
-    maximums = np.flip(np.sort(abs(yfft.imag)))
-    ysfft = []
-    signals = []
-    for i in range(harmonics):
-        ysfft.append(fft(velocity)/n)
-        ysfft[i][np.where(abs(ysfft[i].imag) != maximums[i*2])] = 0
-        signals.append(ifft(ysfft[i])*n)
-    return ysfft, signals
+class fourierAnalysis:
+    def fourier_transform(velocity, n, dt):
+        yfft = fft(velocity) / n  # Normalizada
+        frq = fftfreq(n, dt)  # Recuperamos las frecuencias
+        fHz = frq[np.where(abs(yfft.imag) == max(abs(yfft.imag)))][0]
+        print('La frecuencia de mayor amplitud es: ', fHz)
+        return frq, yfft
+
+    def signal_decomposition(harmonics, velocity, n, yfft):
+        maximums = np.flip(np.sort(abs(yfft.imag)))
+        ysfft = []
+        signals = []
+        for i in range(harmonics):
+            ysfft.append(fft(velocity)/n)
+            ysfft[i][np.where(abs(ysfft[i].imag) != maximums[i*2])] = 0
+            signals.append(ifft(ysfft[i])*n)
+        return ysfft, signals

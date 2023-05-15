@@ -6,7 +6,7 @@ from funtions import*
 COM = 'COM10'
 arduinoSerial = serial.Serial(COM, 38400)
 
-n = 400  # Número de muestras
+n = 1600  # Número de muestras
 
 voltage = np.repeat(0.0,n)
 position = np.repeat(0.0,n)
@@ -39,11 +39,11 @@ acceleration = kinematics.acceleration_calculation(acceleration, velocity, timeV
 
 ##Transformada de Fourier DFT --------------------------------------
 
-frq, yfft = fourier_transform(velocity, n, dt)
+frq, yfft = fourierAnalysis.fourier_transform(velocity, n, dt)
 
 harmonics = 5
 
-ysfft, signals = signal_decomposition(harmonics, velocity, n, yfft)
+ysfft, signals = fourierAnalysis.signal_decomposition(harmonics, velocity, n, yfft)
 
 #Dinamica del movimiento -----------------------------------------------------
 
@@ -55,13 +55,13 @@ fig,(ax,ax1) = plt.subplots(2,1)
 
 ax.plot(timeValues, velocity)
 ax.scatter(timeValues, velocity, s = 12, c = 'black')
-ax.set_xlim(0, 1)
+ax.set_xlim(0, 3)
 ax.set_xlabel('Tiempo (s)')
 ax.set_ylabel('Velocidad (m/s)')
 ax.grid()
 
 ax1.plot(timeValues, acceleration)
-ax1.set_xlim(0, 1)
+ax1.set_xlim(0, 3)
 ax1.set_xlabel('Tiempo (s)')
 ax1.set_ylabel('Aceleracion (m/s^2)')
 ax1.grid()
@@ -75,7 +75,7 @@ ax2.set_ylabel('F(w)')
 ax2.grid()
 
 ax3.plot(timeValues, position)
-ax3.set_xlim(0, 1)
+ax3.set_xlim(0, 3)
 ax3.set_xlabel('Tiempo (s)')
 ax3.set_ylabel('Posición (m)')
 ax3.grid()
@@ -83,7 +83,7 @@ ax3.grid()
 fig3,(ax4) = plt.subplots(1,1)
 for i in range(harmonics):
     ax4.plot(timeValues, signals[i])
-ax4.set_xlim(0, 1)
+ax4.set_xlim(0, 3)
 ax4.set_xlabel('Tiempo (s)')
 ax4.set_ylabel('velocidad')
 ax4.grid()
