@@ -3,7 +3,7 @@ import serial
 import matplotlib.pyplot as plt
 from funtions import*
 
-COM = 'COM10'
+COM = 'COM7'
 arduinoSerial = serial.Serial(COM, 38400)
 
 n = 1600  # Número de muestras
