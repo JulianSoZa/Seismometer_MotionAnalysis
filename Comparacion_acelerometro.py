@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from funtions import*
 import pandas as pd
 
-datos = pd.read_csv("../DATOS/datos_7_08.csv",sep=',',decimal=".")
+datos = pd.read_csv("../DATOS/Raw Data.csv",sep=',',decimal=".")
 
 dat = datos.to_numpy()
 y = dat[:,1]
@@ -17,6 +17,11 @@ useful_time = (x).astype(float)
 
 frq, transformada = fourierAnalysis.fourier_transform(useful, n = len(y), dt=0.00458308)
 
+##Filtros digitales -----------------------------------------------
+
+order = 2
+acceleration = filters.z_transform(useful, order)
+
 fig,(ax,ax1) = plt.subplots(2,1)
 
 ax.vlines(frq, 0, abs(transformada.imag))
@@ -26,6 +31,7 @@ ax.set_ylabel('F(w)')
 ax.grid()
 
 ax1.plot(useful_time,useful)
+ax1.plot(useful_time,acceleration)
 ax1.set_xlabel('Tiempo (s)')
 ax1.set_ylabel('Aceleracion (m/s^2)')
 ax1.grid()

@@ -1,5 +1,6 @@
 import numpy as np
 import time
+import pandas as pd
 from scipy.fftpack import fft, ifft, fftfreq
 
 def noise_filter(values, arduinoSerial): #Filtro del ruido ---------------------------------------------------
@@ -71,14 +72,35 @@ class fourierAnalysis:
         return ysfft, signals
 
 class filters:
-    def z_transform(velocity): # Filtro de segundo orden
-        yn = np.repeat(0.0, len(velocity))
-        xn, xnn, xnnn, ynn, ynnn = (0, 0, 0, 0, 0)
-        for i in range(len(velocity)):
-            yn[i] = 0.020083365564211*xn + 0.040166731128422*xnn + 0.020083365564211*xnnn + 1.561018075800718*ynn - 0.641351538057563*ynnn
-            xnnn = xnn
-            xnn = xn
-            xn = velocity[i]
-            ynnn = ynn
-            ynn = yn[i]
+    def z_transform(velocity, order): 
+        if (order == 1): # Filtro de primer orden
+            yn = np.repeat(0.0, len(velocity))
+            ynn, xn = (0, 0)
+            for i in range(len(velocity)):
+                yn[i] = 0.4*ynn + 0.6*xn # 40 hz
+                #yn = 0.07079*ynn + 0.9292*xn
+                ynn = yn[i]
+                xn = velocity[i]
+        elif (order == 2): # Filtro de segundo orden
+            yn = np.repeat(0.0, len(velocity))
+            xn, xnn, xnnn, ynn, ynnn = (0, 0, 0, 0, 0)
+            for i in range(len(velocity)):
+                yn[i] = 0.020083365564211*xn + 0.040166731128422*xnn + 0.020083365564211*xnnn + 1.561018075800718*ynn - 0.641351538057563*ynnn
+                xnnn = xnn
+                xnn = xn
+                xn = velocity[i]
+                ynnn = ynn
+                ynn = yn[i]
         return yn
+
+def accelerometer_comparison(timeValues, acceleration):
+    try:
+        df = pd.read_csv('../DATOS/datosSismometro.csv')
+        i = str(len(df.axes[1])/2+1)
+        df['Tiempo'+ i] = timeValues
+        df['Aceleracion'+ i] = acceleration
+        df.to_csv('../DATOS/datosSismometro.csv', index=False)
+    except:
+        datos= {'Tiempo1':timeValues,'Aceleracion1':acceleration}
+        df = pd.DataFrame(datos)
+        df.to_csv('../DATOS/datosSismometro.csv', index=False)

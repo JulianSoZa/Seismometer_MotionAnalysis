@@ -47,11 +47,15 @@ ysfft, signals = fourierAnalysis.signal_decomposition(harmonics, velocity, n, yf
 
 ##Filtros digitales -----------------------------------------------
 
-velocityTz = filters.z_transform(velocity)
+order = 2
+velocityTz = filters.z_transform(velocity, order)
 
 #Dinamica del movimiento -----------------------------------------------------
 
 
+# Comparación con el acelerómetro
+
+accelerometer_comparison(timeValues, acceleration)
 
 #Graficar ----------------------------------------------------------
 
