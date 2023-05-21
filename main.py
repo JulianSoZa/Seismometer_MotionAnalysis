@@ -3,8 +3,8 @@ import serial
 import matplotlib.pyplot as plt
 from funtions import*
 
-COM = 'COM7'
-arduinoSerial = serial.Serial(COM, 38400)
+COM = 'COM10'
+arduinoSerial = serial.Serial(COM, 19200)
 
 n = 1600  # Número de muestras
 
@@ -17,8 +17,8 @@ tSpan = np.repeat(0.0,n)
 tFix = np.repeat(0.0,n)
 
 magneticField = 8E-3
-spirals = 1515
-length = 2*3.14159*7E-3
+spirals = 1824
+length = 7E-3
 
 mass = 12E-3
 
@@ -45,6 +45,10 @@ harmonics = 5
 
 ysfft, signals = fourierAnalysis.signal_decomposition(harmonics, velocity, n, yfft)
 
+##Filtros digitales -----------------------------------------------
+
+velocityTz = filters.z_transform(velocity)
+
 #Dinamica del movimiento -----------------------------------------------------
 
 
@@ -54,6 +58,7 @@ ysfft, signals = fourierAnalysis.signal_decomposition(harmonics, velocity, n, yf
 fig,(ax,ax1) = plt.subplots(2,1)
 
 ax.plot(timeValues, velocity)
+ax.plot(timeValues, velocityTz)
 ax.scatter(timeValues, velocity, s = 12, c = 'black')
 ax.set_xlim(0, 3)
 ax.set_xlabel('Tiempo (s)')

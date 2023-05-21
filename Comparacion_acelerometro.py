@@ -4,18 +4,18 @@ import matplotlib.pyplot as plt
 from funtions import*
 import pandas as pd
 
-datos = pd.read_csv("Datos.csv",sep=';',decimal=",")
+datos = pd.read_csv("../DATOS/datos_7_08.csv",sep=',',decimal=".")
 
 dat = datos.to_numpy()
 y = dat[:,1]
 x = dat[:,0]
 
-useful = (y[12177:12875]).astype(float)
-useful_time = (x[12177:12875]).astype(float)
-print(len(useful))
+useful = (y).astype(float)
+useful_time = (x).astype(float)
+  
 
 
-frq, transformada = fourierAnalysis.fourier_transform(useful, n = 698, dt=0.00458308)
+frq, transformada = fourierAnalysis.fourier_transform(useful, n = len(y), dt=0.00458308)
 
 fig,(ax,ax1) = plt.subplots(2,1)
 

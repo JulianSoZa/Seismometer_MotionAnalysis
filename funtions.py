@@ -69,3 +69,16 @@ class fourierAnalysis:
             ysfft[i][np.where(abs(ysfft[i].imag) != maximums[i*2])] = 0
             signals.append(ifft(ysfft[i])*n)
         return ysfft, signals
+
+class filters:
+    def z_transform(velocity): # Filtro de segundo orden
+        yn = np.repeat(0.0, len(velocity))
+        xn, xnn, xnnn, ynn, ynnn = (0, 0, 0, 0, 0)
+        for i in range(len(velocity)):
+            yn[i] = 0.020083365564211*xn + 0.040166731128422*xnn + 0.020083365564211*xnnn + 1.561018075800718*ynn - 0.641351538057563*ynnn
+            xnnn = xnn
+            xnn = xn
+            xn = velocity[i]
+            ynnn = ynn
+            ynn = yn[i]
+        return yn
