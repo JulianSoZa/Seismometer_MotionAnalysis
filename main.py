@@ -3,7 +3,7 @@ import serial
 import matplotlib.pyplot as plt
 from funtions import*
 
-COM = 'COM10'
+COM = 'COM7'
 arduinoSerial = serial.Serial(COM, 19200)
 
 n = 1600  # Número de muestras
@@ -33,7 +33,7 @@ voltage, tFix, tSpan, totalTime, timeValues, dt = data_reading(voltage, arduinoS
 
 velocity, offsetVelocity = kinematics.velocity_calculation(voltage, magneticField, spirals, length)
 
-position = kinematics.position_calculation(position, offsetVelocity)
+position = kinematics.position_calculation(position, offsetVelocity, dt)
 
 acceleration = kinematics.acceleration_calculation(acceleration, velocity, timeValues)
 
@@ -59,7 +59,7 @@ accelerometer_comparison(timeValues, acceleration)
 
 #Graficar ----------------------------------------------------------
 
-fig,(ax,ax1) = plt.subplots(2,1)
+"""fig,(ax,ax1) = plt.subplots(2,1)
 
 ax.plot(timeValues, velocity)
 ax.plot(timeValues, velocityTz)
@@ -98,4 +98,4 @@ ax4.set_ylabel('velocidad')
 ax4.grid()
 
 plt.tight_layout()
-plt.show()
+plt.show()"""

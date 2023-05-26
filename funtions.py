@@ -41,7 +41,8 @@ class kinematics: #Cinematica del movimiento -----------------------------------
         offsetVelocity = velocity - (sum(velocity)/len(velocity))
         return velocity, offsetVelocity
     
-    def position_calculation(position, offsetVelocity):
+    def position_calculation(position, offsetVelocity, dt):
+        offsetVelocity = offsetVelocity*dt
         position[0] = offsetVelocity[0]
         for i in range(len(offsetVelocity)-1):
             position[i+1] = position[i] + offsetVelocity[i+1]          
