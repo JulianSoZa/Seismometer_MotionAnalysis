@@ -12,6 +12,10 @@ voltage = np.repeat(0.0,n)
 position = np.repeat(0.0,n)
 velocity = np.repeat(0.0,n)
 acceleration = np.repeat(0.0,n)
+
+accelerationTz = np.repeat(0.0,n)
+positionTz = np.repeat(0.0,n)
+
 samples = np.linspace(0.0,n, n)
 tSpan = np.repeat(0.0,n)
 tFix = np.repeat(0.0,n)
@@ -50,6 +54,15 @@ ysfft, signals = fourierAnalysis.signal_decomposition(harmonics, velocity, n, yf
 order = 2
 velocityTz = filters.z_transform(velocity, order)
 
+frqTz, yfftTz = fourierAnalysis.fourier_transform(velocityTz, n, dt)
+
+accelerationTz = kinematics.acceleration_calculation(accelerationTz, velocityTz, timeValues)
+
+offsetVelocityTz = velocityTz - (sum(velocityTz)/len(velocityTz))
+
+positionTz = kinematics.position_calculation(positionTz, offsetVelocityTz, dt)
+
+
 #Dinamica del movimiento -----------------------------------------------------
 
 
@@ -59,7 +72,7 @@ accelerometer_comparison(timeValues, acceleration)
 
 #Graficar ----------------------------------------------------------
 
-"""fig,(ax,ax1) = plt.subplots(2,1)
+fig,(ax,ax1) = plt.subplots(2,1)
 
 ax.plot(timeValues, velocity)
 ax.plot(timeValues, velocityTz)
@@ -70,6 +83,7 @@ ax.set_ylabel('Velocidad (m/s)')
 ax.grid()
 
 ax1.plot(timeValues, acceleration)
+ax1.plot(timeValues, accelerationTz)
 ax1.set_xlim(0, 3)
 ax1.set_xlabel('Tiempo (s)')
 ax1.set_ylabel('Aceleracion (m/s^2)')
@@ -77,13 +91,15 @@ ax1.grid()
 
 fig2,(ax2,ax3) = plt.subplots(2,1)
 
-ax2.vlines(frq, 0, abs(yfft.imag))
+ax2.vlines(frq, 0, abs(yfft.imag), colors ='tab:blue')
+ax2.vlines(frqTz, 0, abs(yfftTz.imag), colors = 'tab:orange')
 ax2.set_xlim(0, max(frq))
 ax2.set_xlabel('Frecuencia (Hz)')
 ax2.set_ylabel('F(w)')
 ax2.grid()
 
 ax3.plot(timeValues, position)
+ax3.plot(timeValues, positionTz)
 ax3.set_xlim(0, 3)
 ax3.set_xlabel('Tiempo (s)')
 ax3.set_ylabel('Posición (m)')
@@ -98,4 +114,4 @@ ax4.set_ylabel('velocidad')
 ax4.grid()
 
 plt.tight_layout()
-plt.show()"""
+plt.show()

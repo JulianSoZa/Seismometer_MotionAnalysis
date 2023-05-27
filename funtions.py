@@ -1,6 +1,7 @@
 import numpy as np
 import time
 import pandas as pd
+import matplotlib.pyplot as plt
 from scipy.fftpack import fft, ifft, fftfreq
 
 def noise_filter(values, arduinoSerial): #Filtro del ruido ---------------------------------------------------
@@ -94,7 +95,9 @@ class filters:
                 ynn = yn[i]
         return yn
 
+
 def accelerometer_comparison(timeValues, acceleration):
+
     try:
         df = pd.read_csv('../DATOS/datosSismometro.csv')
         i = str(len(df.axes[1])/2+1)
@@ -105,3 +108,34 @@ def accelerometer_comparison(timeValues, acceleration):
         datos= {'Tiempo1':timeValues,'Aceleracion1':acceleration}
         df = pd.DataFrame(datos)
         df.to_csv('../DATOS/datosSismometro.csv', index=False)
+
+def data_analis(lectura):
+
+    datos = pd.read_csv("../DATOS/datosSismometro.csv")
+    dat = datos.to_numpy()
+    y = dat[1:,lectura]
+    x = dat[1:,lectura-1]
+
+    dt = x[-1]/len(x)
+
+    useful = (y).astype(float)
+    useful_time = (x).astype(float)
+    frq, transformada = fourierAnalysis.fourier_transform(useful, n = len(y), dt=dt)
+
+    order = 2
+    acceleration = filters.z_transform(useful, order)
+
+    fig2,(ax,ax1) = plt.subplots(2,1)
+
+    ax.vlines(frq, 0, abs(transformada.imag))
+    ax.set_xlim(0, max(frq))
+    ax.set_xlabel('Frecuencia (Hz)')
+    ax.set_ylabel('F(w)')
+    ax.grid()
+
+    ax1.plot(useful_time,useful)
+    ax1.plot(useful_time,acceleration)
+    ax1.set_xlabel('Tiempo (s)')
+    ax1.set_ylabel('Aceleracion (m/s^2)')
+    ax1.grid()
+    plt.show

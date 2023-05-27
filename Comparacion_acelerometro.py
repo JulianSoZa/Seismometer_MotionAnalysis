@@ -4,18 +4,17 @@ import matplotlib.pyplot as plt
 from funtions import*
 import pandas as pd
 
-datos = pd.read_csv("../DATOS/Raw Data.csv",sep=',',decimal=".")
+datos = pd.read_csv("../DATOS/DATOS_FINALES/21-27.csv",sep=';',decimal=",")
 
 dat = datos.to_numpy()
-y = dat[:,1]
+y = dat[:,3]
 x = dat[:,0]
 
 useful = (y).astype(float)
 useful_time = (x).astype(float)
-  
-
-
 frq, transformada = fourierAnalysis.fourier_transform(useful, n = len(y), dt=0.00458308)
+
+lectura = int(input("¿A que lectura desea acceder? "))
 
 ##Filtros digitales -----------------------------------------------
 
@@ -35,6 +34,8 @@ ax1.plot(useful_time,acceleration)
 ax1.set_xlabel('Tiempo (s)')
 ax1.set_ylabel('Aceleracion (m/s^2)')
 ax1.grid()
+data_analis(lectura)
 plt.show()
+
 
 
