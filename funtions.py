@@ -151,7 +151,7 @@ def data_analis(lectura):
 
     ax1.plot(useful_time,useful)
     ax1.scatter(useful_time, useful, s = 12, c = 'black')
-    #ax1.plot(useful_time,acceleration)
+    ax1.plot(useful_time,acceleration)
     ax1.set_xlabel('Tiempo (s)')
     ax1.set_ylabel('Voltage (mV)')
     ax1.grid()
