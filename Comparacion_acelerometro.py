@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from funtions import*
 import pandas as pd
 
-datos = pd.read_csv("../DATOS/DATOS_FINALES/21-27.csv",sep=';',decimal=",")
+datos = pd.read_csv("../DATOS/DATOS_FINALES/168-172.csv",sep=';',decimal=",")
 
 dat = datos.to_numpy()
 y = dat[:,3]
@@ -14,7 +14,7 @@ useful = (y).astype(float)
 useful_time = (x).astype(float)
 frq, transformada = fourierAnalysis.fourier_transform(useful, n = len(y), dt=0.00458308)
 
-lectura = int(input("¿A que lectura desea acceder? "))
+lectura = float(input("¿A que lectura desea acceder? "))
 
 ##Filtros digitales -----------------------------------------------
 

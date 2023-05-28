@@ -72,6 +72,18 @@ class fourierAnalysis:
             ysfft[i][np.where(abs(ysfft[i].imag) != maximums[i*2])] = 0
             signals.append(ifft(ysfft[i])*n)
         return ysfft, signals
+    
+def constants_characterization(A1, A2, t1, t2, mass):
+    delta = np.log(A1/A2)
+    xi = 1/(np.sqrt(1+(2*np.pi/delta)**2))
+    omega_n = delta/(xi*(t2-t1))
+    k = mass*(omega_n)**2
+    c = 2*xi*np.sqrt(k*mass)
+
+    print('La constante de elasticidad es: ', k)
+    print('La constante de amortiguamiento es: ', c)
+    print('La frecuencia angular natural es', omega_n)
+    print('El factor de amortiguamiento es', xi)
 
 class filters:
     def z_transform(velocity, order): 
@@ -87,7 +99,9 @@ class filters:
             yn = np.repeat(0.0, len(velocity))
             xn, xnn, xnnn, ynn, ynnn = (0, 0, 0, 0, 0)
             for i in range(len(velocity)):
-                yn[i] = 0.020083365564211*xn + 0.040166731128422*xnn + 0.020083365564211*xnnn + 1.561018075800718*ynn - 0.641351538057563*ynnn
+                yn[i] = 0.020083365564211*xn + 0.040166731128422*xnn + 0.020083365564211*xnnn + 1.561018075800718*ynn - 0.641351538057563*ynnn # relacion 0.1
+                #yn[i] = 0.097631072937818*xn + 0.195262145875635*xnn + 0.097631072937818*xnnn + 0.942809041582063*ynn - 0.333333333333333*ynnn # relacion 0.25
+                #yn[i] = 0.067455273889072*xn + 0.134910547778144*xnn + 0.067455273889072*xnnn + 1.142980502539901*ynn - 0.412801598096189*ynnn # relacion 0.2
                 xnnn = xnn
                 xnn = xn
                 xn = velocity[i]
@@ -112,11 +126,13 @@ def accelerometer_comparison(timeValues, acceleration):
 def data_analis(lectura):
 
     datos = pd.read_csv("../DATOS/datosSismometro.csv")
-    dat = datos.to_numpy()
-    y = dat[1:,lectura]
-    x = dat[1:,lectura-1]
+   
 
-    dt = x[-1]/len(x)
+    y = datos["Aceleracion" + str(lectura+1)].to_numpy()
+    x = datos["Tiempo" + str(lectura+1)].to_numpy()
+
+
+    dt = x[1599]/len(x)
 
     useful = (y).astype(float)
     useful_time = (x).astype(float)
@@ -134,8 +150,9 @@ def data_analis(lectura):
     ax.grid()
 
     ax1.plot(useful_time,useful)
-    ax1.plot(useful_time,acceleration)
+    ax1.scatter(useful_time, useful, s = 12, c = 'black')
+    #ax1.plot(useful_time,acceleration)
     ax1.set_xlabel('Tiempo (s)')
-    ax1.set_ylabel('Aceleracion (m/s^2)')
+    ax1.set_ylabel('Voltage (mV)')
     ax1.grid()
     plt.show
