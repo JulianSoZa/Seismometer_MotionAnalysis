@@ -63,15 +63,17 @@ class fourierAnalysis:
         print('La frecuencia de mayor amplitud es: ', fHz)
         return frq, yfft
 
-    def signal_decomposition(harmonics, velocity, n, yfft):
+    def signal_decomposition(harmonics, velocity, n, yfft, frq):
         maximums = np.flip(np.sort(abs(yfft.imag)))
         ysfft = []
+        harfhz = []
         signals = []
         for i in range(harmonics):
             ysfft.append(fft(velocity)/n)
+            harfhz.append(frq[np.where(abs(ysfft[i].imag) == maximums[i*2])][0])
             ysfft[i][np.where(abs(ysfft[i].imag) != maximums[i*2])] = 0
             signals.append(ifft(ysfft[i])*n)
-        return ysfft, signals
+        return ysfft, signals, harfhz
     
 def constants_characterization(A1, A2, t1, t2, mass):
     delta = np.log(A1/A2)
@@ -124,35 +126,10 @@ def accelerometer_comparison(timeValues, acceleration):
         df.to_csv('../DATOS/datosSismometro.csv', index=False)
 
 def data_analis(lectura):
-
     datos = pd.read_csv("../DATOS/datosSismometro.csv")
-   
-
     y = datos["Aceleracion" + str(lectura+1)].to_numpy()
     x = datos["Tiempo" + str(lectura+1)].to_numpy()
-
-
-    dt = x[1599]/len(x)
-
+    dt = x[int(len(x))-1]/len(x)
     useful = (y).astype(float)
     useful_time = (x).astype(float)
-    frq, transformada = fourierAnalysis.fourier_transform(useful, n = len(y), dt=dt)
-
-    order = 2
-    acceleration = filters.z_transform(useful, order)
-
-    fig2,(ax,ax1) = plt.subplots(2,1)
-
-    ax.vlines(frq, 0, abs(transformada.imag))
-    ax.set_xlim(0, max(frq))
-    ax.set_xlabel('Frecuencia (Hz)')
-    ax.set_ylabel('F(w)')
-    ax.grid()
-
-    ax1.plot(useful_time,useful)
-    ax1.scatter(useful_time, useful, s = 12, c = 'black')
-    ax1.plot(useful_time,acceleration)
-    ax1.set_xlabel('Tiempo (s)')
-    ax1.set_ylabel('Voltage (mV)')
-    ax1.grid()
-    plt.show
+    return useful_time, useful
