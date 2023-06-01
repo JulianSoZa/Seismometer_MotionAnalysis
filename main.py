@@ -6,7 +6,7 @@ from funtions import*
 COM = 'COM7'
 arduinoSerial = serial.Serial(COM, 19200)
 
-n = 1600  # Número de muestras
+n = 1600  # Número de muestras    
 
 voltage = np.repeat(0.0,n)
 position = np.repeat(0.0,n)
@@ -33,7 +33,7 @@ noiseMean = noise_filter(values, arduinoSerial)
 #Lectura de los datos ------------------------------------------------
 voltage, tFix, tSpan, totalTime, timeValues, dt = data_reading(voltage, arduinoSerial, noiseMean, tFix, tSpan, n)
 
-#Cinematica del movimiento ------------------------------------------
+#Cinematica del movimiento ------------------------------------------ 
 
 velocity, offsetVelocity = kinematics.velocity_calculation(voltage, magneticField, spirals, length)
 
@@ -50,21 +50,19 @@ frq, yfft = fourierAnalysis.fourier_transform(velocity, n, dt)
 order = 2
 velocityTz = filters.z_transform(velocity, order)
 
-frqTz, yfftTz = fourierAnalysis.fourier_transform(velocityTz, n, dt)
-
 accelerationTz = kinematics.acceleration_calculation(accelerationTz, velocityTz, timeValues)
 
 offsetVelocityTz = velocityTz - (sum(velocityTz)/len(velocityTz))
 
 positionTz = kinematics.position_calculation(positionTz, offsetVelocityTz, dt)
 
+forceTz = accelerationTz*mass
+
+frqTz, yfftTz = fourierAnalysis.fourier_transform(accelerationTz, n, dt)
+
 harmonics = 3
 
-ysfftTz, signals, harfhzTz = fourierAnalysis.signal_decomposition(harmonics, velocityTz, n, yfftTz, frqTz)
-
-
-#Dinamica del movimiento -----------------------------------------------------
-
+ysfftTz, signals, harfhzTz = fourierAnalysis.signal_decomposition(harmonics, accelerationTz, n, yfftTz, frqTz)
 
 # Comparación con el acelerómetro
 
@@ -115,7 +113,7 @@ for i in range(harmonics):
 ax4.legend()
 ax4.set_xlim(0, 3)
 ax4.set_xlabel('Tiempo (s)')
-ax4.set_ylabel('velocidad')
+ax4.set_ylabel('Aceleracion (m/s^2)')
 ax4.grid()
 
 plt.tight_layout()

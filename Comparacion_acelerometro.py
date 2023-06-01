@@ -4,20 +4,22 @@ import matplotlib.pyplot as plt
 from funtions import*
 import pandas as pd
 
-magneticField = 2
-spirals = 1
-length = 1
+magneticField = 8E-3
+spirals = 1824
+length = 3E-3
 
-datos = pd.read_csv("../DATOS/DATOS_FINALES/71-77.csv",sep=';',decimal=",")
+datos = pd.read_csv("../DATOS/DATOS_FINALES/168-172.csv",sep=';',decimal=",")
 
 dat = datos.to_numpy()
-y = dat[:,3]
+y = dat[:,1]
 x = dat[:,0]
 
 useful = (y).astype(float)
 useful = useful - sum(useful)/len(useful)
 useful_time = (x).astype(float)
-frq, transformada = fourierAnalysis.fourier_transform(useful, n = len(y), dt=0.00458308)
+dt = useful_time[len(useful_time)-1]/len(useful_time)
+n = len(y)
+frq, transformada = fourierAnalysis.fourier_transform(useful, n, dt)
 
 lectura = float(input("¿A que lectura desea acceder? "))
 
@@ -30,9 +32,9 @@ acceleration = kinematics.acceleration_calculation(acceleration, velocity, time_
 
 fig,(ax,ax1) = plt.subplots(2,1)
 
-useful_time = useful_time[15000:16600]
+"""useful_time = useful_time[15000:16600]
 useful_time = useful_time - useful_time[0]
-useful = useful[15000:16600]
+useful = useful[15000:16600]"""
 
 #ax.plot(useful_time,useful)
 ax.plot(time_data_exp, acceleration)
