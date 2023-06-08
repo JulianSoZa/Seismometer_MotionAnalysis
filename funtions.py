@@ -1,11 +1,24 @@
 import numpy as np
 import time
 import pandas as pd
-import matplotlib.pyplot as plt
 from scipy.fftpack import fft, ifft, fftfreq
+import scipy.signal as signal
 
-def noise_filter(values, arduinoSerial): #Filtro del ruido ---------------------------------------------------
+def constants_characterization(A1, A2, t1, t2, mass):
+    delta = np.log(A1/A2)
+    xi = 1/(np.sqrt(1+(2*np.pi/delta)**2))
+    omega_n = delta/(xi*(t2-t1))
+    k = mass*(omega_n)**2
+    c = 2*xi*np.sqrt(k*mass)
+
+    print('La constante de elasticidad es: ', k)
+    print('La constante de amortiguamiento es: ', c)
+    print('La frecuencia angular natural es', omega_n)
+    print('El factor de amortiguamiento es', xi)
+
+def noise_offset(values, arduinoSerial): #Filtro del ruido ---------------------------------------------------
     noise = 0
+    print('Eliminando el offset de la señal')
     for i in range(values):
         try:
             sensorValue = (float(arduinoSerial.readline().decode('utf-8')))
@@ -13,11 +26,10 @@ def noise_filter(values, arduinoSerial): #Filtro del ruido ---------------------
             sensorValue = 0
         noise = noise + sensorValue
     noiseMean = noise/values
-
     return noiseMean
 
 def data_reading(voltage, arduinoSerial, noiseMean, tFix, tSpan, n): #Lectura de los datos ------------------------------------------------
-    print('Comienza')
+    print('Comienza la medicion')
     for i in range(len(voltage)):
         try:
             voltage[i] = (float(arduinoSerial.readline().decode('utf-8'))) - noiseMean
@@ -30,7 +42,7 @@ def data_reading(voltage, arduinoSerial, noiseMean, tFix, tSpan, n): #Lectura de
             tSpan[i] = time.time() - tFix[0]
     print('Termina')
     totalTime = tFix[n-1]-tFix[0]
-    print('Tiempo: ', totalTime)
+    print(f'Tiempo de medicion: {round(totalTime, 4)} seg.')
     timeValues = np.linspace(0.0, totalTime, n)
     dt = totalTime/n
 
@@ -60,8 +72,7 @@ class fourierAnalysis:
         yfft = fft(velocity)/n
         frq = fftfreq(n, dt)
         fHz = frq[np.where(abs(yfft.imag) == max(abs(yfft.imag)))][0]
-        print('La frecuencia de mayor amplitud es: ', fHz)
-        return frq, yfft
+        return frq, yfft, fHz
 
     def signal_decomposition(harmonics, velocity, n, yfft, frq):
         maximums = np.flip(np.sort(abs(yfft.imag)))
@@ -75,35 +86,25 @@ class fourierAnalysis:
             signals.append(ifft(ysfft[i])*n)
         return ysfft, signals, harfhz
     
-def constants_characterization(A1, A2, t1, t2, mass):
-    delta = np.log(A1/A2)
-    xi = 1/(np.sqrt(1+(2*np.pi/delta)**2))
-    omega_n = delta/(xi*(t2-t1))
-    k = mass*(omega_n)**2
-    c = 2*xi*np.sqrt(k*mass)
-
-    print('La constante de elasticidad es: ', k)
-    print('La constante de amortiguamiento es: ', c)
-    print('La frecuencia angular natural es', omega_n)
-    print('El factor de amortiguamiento es', xi)
-
 class filters:
-    def z_transform(velocity, order): 
+    def butterworth(velocity, order, frqCut, frqSamp): 
         if (order == 1): # Filtro de primer orden
+            wn = frqCut/frqSamp
+            b, a = signal.butter(order, wn, 'low')
             yn = np.repeat(0.0, len(velocity))
-            ynn, xn = (0, 0)
+            ynn, xn, xnn = (0, 0, 0)
             for i in range(len(velocity)):
-                yn[i] = 0.4*ynn + 0.6*xn # 40 hz
-                #yn = 0.07079*ynn + 0.9292*xn
+                yn[i] = b[0]*xn + b[1]*xnn - a[1]*ynn 
                 ynn = yn[i]
+                xnn = xn
                 xn = velocity[i]
         elif (order == 2): # Filtro de segundo orden
+            wn = frqCut/frqSamp
+            b, a = signal.butter(order, wn, 'low')
             yn = np.repeat(0.0, len(velocity))
             xn, xnn, xnnn, ynn, ynnn = (0, 0, 0, 0, 0)
             for i in range(len(velocity)):
-                yn[i] = 0.020083365564211*xn + 0.040166731128422*xnn + 0.020083365564211*xnnn + 1.561018075800718*ynn - 0.641351538057563*ynnn # relacion 0.1
-                #yn[i] = 0.097631072937818*xn + 0.195262145875635*xnn + 0.097631072937818*xnnn + 0.942809041582063*ynn - 0.333333333333333*ynnn # relacion 0.25
-                #yn[i] = 0.067455273889072*xn + 0.134910547778144*xnn + 0.067455273889072*xnnn + 1.142980502539901*ynn - 0.412801598096189*ynnn # relacion 0.2
+                yn[i] = b[0]*xn + b[1]*xnn + b[2]*xnnn - a[1]*ynn - a[2]*ynnn
                 xnnn = xnn
                 xnn = xn
                 xn = velocity[i]
@@ -111,25 +112,33 @@ class filters:
                 ynn = yn[i]
         return yn
 
+class accelerometer_comparison:
+    def data_storage(timeValues, acceleration):
+        try:
+            df = pd.read_csv('Datos/datosSismometro.csv')
+            i = str(int(len(df.axes[1])/2+1))
+            df['Tiempo'+ i] = timeValues
+            df['Aceleracion'+ i] = acceleration
+            df.to_csv('Datos/datosSismometro.csv', index=False)
+        except:
+            datos= {'Tiempo1':timeValues,'Aceleracion1':acceleration}
+            df = pd.DataFrame(datos)
+            df.to_csv('Datos/datosSismometro.csv', index=False)
 
-def accelerometer_comparison(timeValues, acceleration):
+    def data_extraction(reading):
+        data = pd.read_csv("Datos/datosSismometro.csv")
+        acceleration = data["Aceleracion" + str(reading+1)].to_numpy().astype(float)
+        timeValues = data["Tiempo" + str(reading+1)].to_numpy().astype(float)
+        return timeValues, acceleration
 
-    try:
-        df = pd.read_csv('../DATOS/datosSismometro.csv')
-        i = str(len(df.axes[1])/2+1)
-        df['Tiempo'+ i] = timeValues
-        df['Aceleracion'+ i] = acceleration
-        df.to_csv('../DATOS/datosSismometro.csv', index=False)
-    except:
-        datos= {'Tiempo1':timeValues,'Aceleracion1':acceleration}
-        df = pd.DataFrame(datos)
-        df.to_csv('../DATOS/datosSismometro.csv', index=False)
-
-def data_analis(lectura):
-    datos = pd.read_csv("../DATOS/datosSismometro.csv")
-    y = datos["Aceleracion" + str(lectura+1)].to_numpy()
-    x = datos["Tiempo" + str(lectura+1)].to_numpy()
-    dt = x[int(len(x))-1]/len(x)
-    useful = (y).astype(float)
-    useful_time = (x).astype(float)
-    return useful_time, useful
+    def accelerometer_reading():
+        try:
+            data = pd.read_csv("Datos/Muestras/1-5.csv",sep=';',decimal=",").to_numpy()
+            acceleration = data[:,1].astype(float)
+            acceleration = acceleration - sum(acceleration)/len(acceleration)
+            timeValues = data[:,0].astype(float)
+        except:
+            print("""Error en accelerometer_reading(): 
+                  * Por favor, asegurese que existen datos por leer *""")
+            timeValues, acceleration = (0, 0)
+        return timeValues, acceleration

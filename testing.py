@@ -3,8 +3,16 @@ import time
 from scipy.fftpack import fft, ifft, fftfreq
 import matplotlib.pyplot as plt
 from funtions import*
+import scipy.signal as signal
 
-n = 400
+N_order = 1
+frqCut = 60
+frqSamp = 400
+wn = frqCut/frqSamp
+b, a = signal.butter(N_order, wn, 'low')
+print(b)
+print(a)
+"""n = 400
 
 tSpan = np.linspace(0.0,1, n)
 y = np.sin(88*tSpan) + 5*np.sin(176*tSpan) + 2*np.sin(126*tSpan) - np.random.randn(n)
@@ -39,4 +47,4 @@ for i in range(harmonics):
 ax2.grid()
 
 plt.tight_layout()
-plt.show()
+plt.show()"""

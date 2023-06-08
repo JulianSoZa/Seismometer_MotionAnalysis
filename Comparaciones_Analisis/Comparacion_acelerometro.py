@@ -23,7 +23,7 @@ frq, transformada = fourierAnalysis.fourier_transform(useful, n, dt)
 
 lectura = float(input("¿A que lectura desea acceder? "))
 
-time_data_exp, data_exp = data_analis(lectura)
+time_data_exp, data_exp = accelerometer_comparison.data_extraction(lectura)
 
 acceleration = np.repeat(0.0,len(data_exp))
 velocity, offsetVelocity = kinematics.velocity_calculation(data_exp, magneticField, spirals, length)

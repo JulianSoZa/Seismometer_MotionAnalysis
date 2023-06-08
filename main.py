@@ -3,52 +3,70 @@ import serial
 import matplotlib.pyplot as plt
 from funtions import*
 
-COM = 'COM10'
-arduinoSerial = serial.Serial(COM, 19200)
+# --------------- Comunicacion con el arduino ------------
+COM = 'COM10' # Puerto del arduino
+arduinoSerial = serial.Serial(COM, 19200) # Se establece la comunicacion. (Puerto, Baudios)
+##
 
-n = 1600  # Número de muestras    
+# --------------- Condiciones / Variables iniciales ----------
+n = 1600  # Numero de muestras    
 
-voltage = np.repeat(0.0,n)
-position = np.repeat(0.0,n)
-velocity = np.repeat(0.0,n)
-acceleration = np.repeat(0.0,n)
+voltage = np.repeat(0.0,n) # Voltaje
+position = np.repeat(0.0,n) # Posicion 
+velocity = np.repeat(0.0,n) # Velocidad
+acceleration = np.repeat(0.0,n) # Aceleracion
 
-accelerationTz = np.repeat(0.0,n)
-positionTz = np.repeat(0.0,n)
+accelerationTz = np.repeat(0.0,n) # Aceleracion filtrada
+positionTz = np.repeat(0.0,n) # Posicion filtrada
 
-samples = np.linspace(0.0,n, n)
-tSpan = np.repeat(0.0,n)
-tFix = np.repeat(0.0,n)
+samples = np.linspace(0.0,n, n) # Vector de muestreo (Cantidad de muestras)
+tSpan = np.repeat(0.0,n) # Vector de tiempo con inicio en 0
+tFix = np.repeat(0.0,n) # Vector de tiempo sin traslacion
 
-magneticField = 8E-3
-spirals = 1824
-length = 7E-3
+magneticField = 8E-3 # Magnitud del campo magnetico (T)
+spirals = 1824 # Numero de espiras
+length = 3E-3 # Diametro del iman
 
-mass = 12E-3
+mass = 12E-3 # masa del sistema
+##
 
-#Filtro del ruido ---------------------------------------------------
-values = 400
-noiseMean = noise_filter(values, arduinoSerial)
+# ------------- Correccion del offSet ----------------
+values = 400 # Muestras 
+noiseMean = noise_offset(values, arduinoSerial) # media de los datos
+##
 
-#Lectura de los datos ------------------------------------------------
+# ------------- Lectura de los datos -----------------
 voltage, tFix, tSpan, totalTime, timeValues, dt = data_reading(voltage, arduinoSerial, noiseMean, tFix, tSpan, n)
+# "totalTime": tiempo total de lectura
+# "timeValues": vector de timepo uniformemente espaciado)
+# "dt": diferencial de tiempo
+##
 
-#Cinematica del movimiento ------------------------------------------ 
-
+# ------------- Cinematica del movimiento -------------- 
 velocity, offsetVelocity = kinematics.velocity_calculation(voltage, magneticField, spirals, length)
+# "offsetVelocity": correcion del valor constante, (se usa en la integracion)  
 
 position = kinematics.position_calculation(position, offsetVelocity, dt)
 
 acceleration = kinematics.acceleration_calculation(acceleration, velocity, timeValues)
+##
 
-##Transformada de Fourier DFT --------------------------------------
+# -------------- Analisis de la señal ------------------
+# Transformada de Fourier DFT
+frq, yfft, fHz = fourierAnalysis.fourier_transform(velocity, n, dt)
+print(f'La frecuencia de mayor amplitud sin filtado es: {round(fHz, 2)} Hz.')
+# "frq": dominio de las frecuencias
+# "yfft": DFT
+# "fHz" : Frecuencia de mayor amplitud en el espectro
 
-frq, yfft = fourierAnalysis.fourier_transform(velocity, n, dt)
+# ------------- Filtros digitales ----------------------
+#Filtro butterworth
+order = 2 # orden del filtro
+frqCut = 40 #frecuencia de corte
+frqSamp = 400 #frecuencia de muestreo
+#frqSamp = 1/dt
 
-##Filtros digitales -----------------------------------------------
-
-order = 2
-velocityTz = filters.z_transform(velocity, order)
+velocityTz = filters.butterworth(velocity, order, frqCut, frqSamp)
 
 accelerationTz = kinematics.acceleration_calculation(accelerationTz, velocityTz, timeValues)
 
@@ -56,19 +74,25 @@ offsetVelocityTz = velocityTz - (sum(velocityTz)/len(velocityTz))
 
 positionTz = kinematics.position_calculation(positionTz, offsetVelocityTz, dt)
 
-forceTz = accelerationTz*mass
+frqTz, yfftTz, fHzTz = fourierAnalysis.fourier_transform(accelerationTz, n, dt)
+print(f'La frecuencia de mayor amplitud con filtado es: {round(fHzTz, 2)} Hz.')
+##
 
-frqTz, yfftTz = fourierAnalysis.fourier_transform(accelerationTz, n, dt)
-
-harmonics = 3
+# ------------- Descomposicion en Series de Fourier ---------------
+harmonics = 3 # Numeros de armonicos de la descomposicion
 
 ysfftTz, signals, harfhzTz = fourierAnalysis.signal_decomposition(harmonics, accelerationTz, n, yfftTz, frqTz)
+# "ysfftTz": Vector con la DFT para cada armonico
+# "signals": Vector con los valores de cada armonico
+# "harfhzTz": Vector con la frecuencia de cada armonico
+## 
 
-# Comparación con el acelerómetro
+# ------------- Almacenamiento de los datos -------------------
+accelerometer_comparison.data_storage(timeValues, acceleration)
+accelerometer_acceleration, accelerometer_timeValues = accelerometer_comparison.accelerometer_reading()
+##
 
-accelerometer_comparison(timeValues, acceleration)
-
-#Graficar ----------------------------------------------------------
+#-------------- Graficos de los resultados ------------
 
 fig,(ax,ax1) = plt.subplots(2,1)
 
@@ -88,6 +112,7 @@ ax1.set_xlim(0, max(frq))
 ax1.set_xlabel('Frecuencia (Hz)')
 ax1.set_ylabel('F(w)')
 ax1.grid()
+
 plt.tight_layout()
 
 fig2,(ax2,ax3) = plt.subplots(2,1)
@@ -105,6 +130,7 @@ ax3.set_xlim(0, 3)
 ax3.set_xlabel('Tiempo (s)')
 ax3.set_ylabel('Posición (m)')
 ax3.grid()
+
 plt.tight_layout()
 
 fig3,(ax4) = plt.subplots(1,1)
