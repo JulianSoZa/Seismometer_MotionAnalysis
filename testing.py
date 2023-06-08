@@ -5,32 +5,25 @@ import matplotlib.pyplot as plt
 from funtions import*
 import scipy.signal as signal
 
-N_order = 1
+"""N_order = 1
 frqCut = 60
 frqSamp = 400
 wn = frqCut/frqSamp
 b, a = signal.butter(N_order, wn, 'low')
 print(b)
-print(a)
-"""n = 400
+print(a)"""
+
+n = 4000
 
 tSpan = np.linspace(0.0,1, n)
-y = np.sin(88*tSpan) + 5*np.sin(176*tSpan) + 2*np.sin(126*tSpan) - np.random.randn(n)
+y = 3*np.sin(4*2*np.pi*tSpan) + 5*np.sin(6*2*np.pi*tSpan) + 2*np.sin(8*2*np.pi*tSpan) #- np.random.randn(n)
 dt = 1/n
 
 yfft = fft(y) / n  # Normalizada
 frq = fftfreq(n, dt)  # Recuperamos las frecuencias
-signal = ifft(yfft)*n
+harmonics = 3 # Numeros de armonicos de la descomposicion
 
-harmonics = 5
-maximums = np.flip(np.sort(abs(yfft.imag)))
-ysfft = []
-signals = []
-
-for i in range(harmonics):
-    ysfft.append(fft(y)/n)
-    ysfft[i][np.where(abs(ysfft[i].imag) != maximums[i*2])] = 0
-    signals.append(ifft(ysfft[i])*n)
+ysfftTz, signals, harfhzTz = fourierAnalysis.signal_decomposition(harmonics, y, n, yfft, frq)
 
 fig,(ax,ax1) = plt.subplots(2,1)
 
@@ -43,8 +36,9 @@ ax1.grid()
 
 fig2,(ax2) = plt.subplots(1,1)
 for i in range(harmonics):
-    ax2.plot(tSpan, signals[i])
+    ax2.plot(tSpan, signals[i].real, label = str(round(harfhzTz[i], 3))+' Hz')
+ax2.legend()
 ax2.grid()
 
 plt.tight_layout()
-plt.show()"""
+plt.show()

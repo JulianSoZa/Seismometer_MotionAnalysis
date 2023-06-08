@@ -9,19 +9,9 @@ arduinoSerial = serial.Serial(COM, 19200) # Se establece la comunicacion. (Puert
 ##
 
 # --------------- Condiciones / Variables iniciales ----------
-n = 1600  # Numero de muestras    
-
-voltage = np.repeat(0.0,n) # Voltaje
-position = np.repeat(0.0,n) # Posicion 
-velocity = np.repeat(0.0,n) # Velocidad
-acceleration = np.repeat(0.0,n) # Aceleracion
-
-accelerationTz = np.repeat(0.0,n) # Aceleracion filtrada
-positionTz = np.repeat(0.0,n) # Posicion filtrada
+n = 1600  # Numero de muestras
 
 samples = np.linspace(0.0,n, n) # Vector de muestreo (Cantidad de muestras)
-tSpan = np.repeat(0.0,n) # Vector de tiempo con inicio en 0
-tFix = np.repeat(0.0,n) # Vector de tiempo sin traslacion
 
 magneticField = 8E-3 # Magnitud del campo magnetico (T)
 spirals = 1824 # Numero de espiras
@@ -36,7 +26,10 @@ noiseMean = noise_offset(values, arduinoSerial) # media de los datos
 ##
 
 # ------------- Lectura de los datos -----------------
-voltage, tFix, tSpan, totalTime, timeValues, dt = data_reading(voltage, arduinoSerial, noiseMean, tFix, tSpan, n)
+voltage, tFix, tSpan, totalTime, timeValues, dt = data_reading(arduinoSerial, noiseMean, n)
+# "voltage": Voltaje
+# "tFix": Vector de tiempo sin traslacion
+# "tSpan": Vector de tiempo con inicio en 0
 # "totalTime": tiempo total de lectura
 # "timeValues": vector de timepo uniformemente espaciado)
 # "dt": diferencial de tiempo
@@ -44,11 +37,12 @@ voltage, tFix, tSpan, totalTime, timeValues, dt = data_reading(voltage, arduinoS
 
 # ------------- Cinematica del movimiento -------------- 
 velocity, offsetVelocity = kinematics.velocity_calculation(voltage, magneticField, spirals, length)
+# "velocity": Velocidad
 # "offsetVelocity": correcion del valor constante, (se usa en la integracion)  
 
-position = kinematics.position_calculation(position, offsetVelocity, dt)
+position = kinematics.position_calculation(offsetVelocity, dt, n) #Posicion
 
-acceleration = kinematics.acceleration_calculation(acceleration, velocity, timeValues)
+acceleration = kinematics.acceleration_calculation(velocity, timeValues, n) #Aceleracion
 ##
 
 # -------------- Analisis de la señal ------------------
@@ -68,11 +62,11 @@ frqSamp = 400 #frecuencia de muestreo
 
 velocityTz = filters.butterworth(velocity, order, frqCut, frqSamp)
 
-accelerationTz = kinematics.acceleration_calculation(accelerationTz, velocityTz, timeValues)
+accelerationTz = kinematics.acceleration_calculation(velocityTz, timeValues, n)
 
 offsetVelocityTz = velocityTz - (sum(velocityTz)/len(velocityTz))
 
-positionTz = kinematics.position_calculation(positionTz, offsetVelocityTz, dt)
+positionTz = kinematics.position_calculation(offsetVelocityTz, dt, n)
 
 frqTz, yfftTz, fHzTz = fourierAnalysis.fourier_transform(accelerationTz, n, dt)
 print(f'La frecuencia de mayor amplitud con filtado es: {round(fHzTz, 2)} Hz.')
@@ -89,7 +83,6 @@ ysfftTz, signals, harfhzTz = fourierAnalysis.signal_decomposition(harmonics, acc
 
 # ------------- Almacenamiento de los datos -------------------
 accelerometer_comparison.data_storage(timeValues, acceleration)
-accelerometer_acceleration, accelerometer_timeValues = accelerometer_comparison.accelerometer_reading()
 ##
 
 #-------------- Graficos de los resultados ------------
