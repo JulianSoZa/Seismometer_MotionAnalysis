@@ -1,3 +1,10 @@
+"""Este programa es realizado por Julian Andres Solano Zapardiel, Juan Manuel Arboleda Londoño y Karol Andrea Peña Arango
+   Para el proyecto de materia de la asignatura Proyecto Experimental 2
+
+    Universidad EAFIT
+    2023
+"""
+
 import numpy as np
 import serial
 import matplotlib.pyplot as plt
